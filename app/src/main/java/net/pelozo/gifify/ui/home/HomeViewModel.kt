@@ -3,11 +3,20 @@ package net.pelozo.gifify.ui.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import net.pelozo.gifify.model.giphyApi.GiphyResponse
+import net.pelozo.gifify.model.giphyApi.model.GifDto
+import net.pelozo.gifify.model.repositories.GifRepository
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(private val gifRepo: GifRepository) : ViewModel() {
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
+    init {
+        viewModelScope.launch {
+            println(gifRepo.getTrends())
+            println(gifRepo.getBySearch("lol", 1))
+        }
     }
-    val text: LiveData<String> = _text
+
+
 }

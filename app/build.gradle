@@ -17,9 +17,16 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField 'String', "API_KEY", GiphyApi
+            resValue 'string', "api_key", GiphyApi
+        }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField 'String', "API_KEY", GiphyApi
+            resValue 'string', "api_key", GiphyApi
         }
     }
     compileOptions {
@@ -53,6 +60,10 @@ dependencies {
     testImplementation "io.insert-koin:koin-test:$koin_version"
     // Koin main features for Android (Scope,ViewModel ...)
     implementation "io.insert-koin:koin-android:$koin_version"
+
+    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
+    implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1'
 
 
 }
