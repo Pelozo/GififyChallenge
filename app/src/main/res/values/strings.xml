@@ -7,4 +7,5 @@
     <string name="share_message">Check out this cool gif! %1$s \n By %2$s</string>
     <string name="close">Close</string>
     <string name="send_to">Send to</string>
+    <string name="no_results_found">No results found</string>
 </resources>

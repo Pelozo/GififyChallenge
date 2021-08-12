@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.*
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -20,6 +22,7 @@ import net.pelozo.gifify.glideLoad
 import net.pelozo.gifify.showSnackbar
 import net.pelozo.gifify.ui.home.HomeViewModel.Event
 import org.koin.androidx.viewmodel.ext.android.viewModel
+
 
 class HomeFragment : Fragment() {
 
@@ -38,29 +41,60 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val recycler = view.findViewById<RecyclerView>(R.id.rv_gifs)
+
+        //listen to events from viewmodel
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewmodel.uiState.collect { uiState ->
                     when (uiState) {
-                        is Event.ShowLoading -> progressbar.visibility = View.VISIBLE
-                        is Event.DismissLoading -> progressbar.visibility = View.GONE
-                        is Event.ShowGifs -> view.findViewById<RecyclerView>(R.id.rv_gifs).adapter =
-                            GifRecyclerviewAdapter(
-                                uiState.gifs,
-                                viewmodel
-                            )
+                        is Event.ShowLoading -> pb_endless.visibility = View.VISIBLE
+                        is Event.DismissLoading -> pb_endless.visibility = View.GONE
+                        is Event.ShowGifs -> {
+                            recycler.adapter = GifRecyclerviewAdapter(uiState.gifs,viewmodel)
+                            view.findViewById<TextView>(R.id.tv_no_results).visibility = View.INVISIBLE
+                        }
                         is Event.OpenShareDialog -> openShareDialog(uiState.url)
-                        is Event.ShowSnackBar -> showSnackbar(uiState.text)//{Snackbar.make(view, "hey", Snackbar.LENGTH_SHORT).show()}
+                        is Event.ShowSnackBar -> showSnackbar(uiState.text)
+                        is Event.EmptyTrends -> {
+                            recycler.visibility = View.INVISIBLE
+                            view.findViewById<TextView>(R.id.tv_no_results).visibility = View.VISIBLE
+                        }
                     }
                 }
             }
         }
+        //call trends
+        viewmodel.loadTrends()
     }
 
     private fun setUpToolbar(toolbar: Toolbar){
         toolbar.title = getString(R.string.nav_home)
         toolbar.inflateMenu(R.menu.toolbar_menu)
+        val searchview = toolbar.menu.findItem(R.id.searchView).actionView as SearchView
+
+        //add listener used to search gifs
+        searchview.apply{
+            setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String): Boolean {
+                    if (query.isNotEmpty()) {
+                        viewmodel.searchGif(query)
+                        return true
+                    }
+                    return false
+                }
+                override fun onQueryTextChange(p0: String): Boolean {
+                   //this needs to be implemented but it's not used atm, may be used later.
+                    return false
+                }
+
+            })
+        }
+
     }
+
+
+
     private fun openShareDialog(url: String){
         context?.let {
             val dialog = Dialog(it)
@@ -75,7 +109,13 @@ class HomeFragment : Fragment() {
 
                 val shareIntent: Intent = Intent().apply {
                     action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, getString(R.string.share_message, url, getString(R.string.app_name)))
+                    putExtra(
+                        Intent.EXTRA_TEXT, getString(
+                            R.string.share_message,
+                            url,
+                            getString(R.string.app_name)
+                        )
+                    )
                     setType("text/plain");
                 }
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.send_to)))
