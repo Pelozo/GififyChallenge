@@ -3,4 +3,8 @@
     <string name="nav_home">Home</string>
     <string name="nav_favorites">Favorites</string>
     <string name="search">Search</string>
+    <string name="share">Share</string>
+    <string name="share_message">Check out this cool gif! %1$s \n By %2$s</string>
+    <string name="close">Close</string>
+    <string name="send_to">Send to</string>
 </resources>

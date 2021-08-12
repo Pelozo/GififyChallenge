@@ -2,7 +2,7 @@ package net.pelozo.gifify.model.giphyApi.model
 
 import com.squareup.moshi.Json
 
-data class GifDto(
+data class Gif(
     val id: String,
     val title: String,
     val images: GifImages
