@@ -6,13 +6,14 @@ import android.os.Bundle
 import android.view.*
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.flow.collect
@@ -27,6 +28,8 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class HomeFragment : Fragment() {
 
     private val viewmodel: HomeViewModel by viewModel()
+    lateinit var adapter: GifAdapter
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,37 +38,52 @@ class HomeFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
         setUpToolbar(root.findViewById(R.id.toolbar))
+
+        val recyclerView = root.findViewById<RecyclerView>(R.id.rv_gifs)
+        adapter = GifAdapter(viewmodel)
+
+        recyclerView.adapter = adapter
+
+        //display text when list is empty.
+        adapter.addLoadStateListener { loadState ->
+            if (loadState.source.refresh is LoadState.NotLoading && loadState.append.endOfPaginationReached && adapter.itemCount < 1) {
+                recyclerView?.isVisible = false
+                tv_no_results?.isVisible = true
+            } else {
+                recyclerView?.isVisible = true
+                tv_no_results?.isVisible = false
+            }
+        }
+
         return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val recycler = view.findViewById<RecyclerView>(R.id.rv_gifs)
-
-        //listen to events from viewmodel
-        lifecycleScope.launch {
+        //handle events from viewmodel
+        lifecycleScope.launchWhenStarted {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewmodel.uiState.collect { uiState ->
-                    when (uiState) {
+                viewmodel.eventsFlow.collect { event ->
+                    when (event) {
                         is Event.ShowLoading -> pb_endless.visibility = View.VISIBLE
                         is Event.DismissLoading -> pb_endless.visibility = View.GONE
-                        is Event.ShowGifs -> {
-                            recycler.adapter = GifRecyclerviewAdapter(uiState.gifs,viewmodel)
-                            view.findViewById<TextView>(R.id.tv_no_results).visibility = View.INVISIBLE
-                        }
-                        is Event.OpenShareDialog -> openShareDialog(uiState.url)
-                        is Event.ShowSnackBar -> showSnackbar(uiState.text)
-                        is Event.EmptyTrends -> {
-                            recycler.visibility = View.INVISIBLE
-                            view.findViewById<TextView>(R.id.tv_no_results).visibility = View.VISIBLE
-                        }
+                        is Event.OpenShareDialog -> openShareDialog(event.url)
+                        is Event.ShowSnackBar -> showSnackbar(event.text)
                     }
                 }
             }
         }
-        //call trends
-        viewmodel.loadTrends()
+        loadGifs()
+    }
+
+    private fun loadGifs(query: String? = null){
+        lifecycleScope.launch {
+            viewmodel.getGifs(query).collect{ pagingData ->
+                adapter.submitData(pagingData)
+
+            }
+        }
     }
 
     private fun setUpToolbar(toolbar: Toolbar){
@@ -78,22 +96,35 @@ class HomeFragment : Fragment() {
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String): Boolean {
                     if (query.isNotEmpty()) {
-                        viewmodel.searchGif(query)
+                        loadGifs(query)
                         return true
                     }
                     return false
                 }
+
                 override fun onQueryTextChange(p0: String): Boolean {
-                   //this needs to be implemented but it's not used atm, may be used later.
+                    //not used
                     return false
                 }
-
             })
+
         }
 
+        //when closing searchview return to trends
+        val item = toolbar.menu.findItem(R.id.searchView)
+        item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(menuItem: MenuItem?): Boolean {
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(menuItem: MenuItem?): Boolean {
+                //TODO when no
+                loadGifs()
+                return true
+            }
+        })
+
     }
-
-
 
     private fun openShareDialog(url: String){
         context?.let {
@@ -126,7 +157,7 @@ class HomeFragment : Fragment() {
             val lp = WindowManager.LayoutParams()
             lp.copyFrom(dialog.window!!.attributes)
             lp.width = WindowManager.LayoutParams.MATCH_PARENT
-            lp.height = WindowManager.LayoutParams.MATCH_PARENT
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT
             val window = dialog.window
             window!!.attributes = lp
 
@@ -135,5 +166,7 @@ class HomeFragment : Fragment() {
             dialog.show()
         }
     }
+
+
 
 }
