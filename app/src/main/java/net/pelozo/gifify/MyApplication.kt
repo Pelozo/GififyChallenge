@@ -2,6 +2,8 @@ package net.pelozo.gifify
 
 import android.app.Application
 import net.pelozo.gifify.di.appModule
+import net.pelozo.gifify.di.retrofitModule
+import net.pelozo.gifify.di.roomModule
 import net.pelozo.gifify.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -14,7 +16,7 @@ class MyApplication : Application(){
         startKoin{
             androidLogger()
             androidContext(this@MyApplication)
-            modules(appModule, viewModelModule)
+            modules(appModule, viewModelModule, retrofitModule, roomModule)
         }
     }
 }

@@ -1,7 +1,6 @@
-package net.pelozo.gifify.model.giphyApi
+package net.pelozo.gifify.networking.giphyApi
 
 import net.pelozo.gifify.BuildConfig
-import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
 

@@ -1,6 +1,6 @@
-package net.pelozo.gifify.model.giphyApi
+package net.pelozo.gifify.networking.giphyApi
 
-import androidx.paging.PagingSource
+import net.pelozo.gifify.model.GiphyResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query

@@ -1,8 +1,8 @@
-package net.pelozo.gifify.model.giphyApi.model
+package net.pelozo.gifify.model
 
 import com.squareup.moshi.Json
 
-data class Gif(
+data class GifDto(
     val id: String,
     val title: String,
     val images: GifImages

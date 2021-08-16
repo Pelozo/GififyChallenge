@@ -8,9 +8,7 @@
 
     <item
         android:id="@+id/navigation_favorites"
-        android:icon="@drawable/ic_dashboard_black_24dp"
+        android:icon="@android:drawable/btn_star_big_off"
         android:title="@string/nav_favorites" />
-
-
 
 </menu>

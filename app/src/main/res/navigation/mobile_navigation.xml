@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="net.pelozo.gifify.ui.home.HomeFragment"
+        android:name="net.pelozo.gifify.ui.fragments.home.HomeFragment"
         android:label="@string/nav_home"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_favorites"
-        android:name="net.pelozo.gifify.ui.favorites.FavoritesFragment"
+        android:name="net.pelozo.gifify.ui.fragments.favorites.FavoritesFragment"
         android:label="@string/nav_favorites"
         tools:layout="@layout/fragment_favorites" />
 </navigation>

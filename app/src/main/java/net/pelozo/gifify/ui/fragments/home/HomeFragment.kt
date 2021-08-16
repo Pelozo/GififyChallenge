@@ -1,11 +1,7 @@
-package net.pelozo.gifify.ui.home
+package net.pelozo.gifify.ui.fragments.home
 
-import android.app.Dialog
-import android.content.Intent
 import android.os.Bundle
 import android.view.*
-import android.widget.Button
-import android.widget.ImageView
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
@@ -19,16 +15,19 @@ import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import net.pelozo.gifify.R
-import net.pelozo.gifify.glideLoad
+import net.pelozo.gifify.model.Gif
 import net.pelozo.gifify.showSnackbar
-import net.pelozo.gifify.ui.home.HomeViewModel.Event
+import net.pelozo.gifify.ui.adapters.GifPagingAdapter
+import net.pelozo.gifify.ui.adapters.GifPagingAdapter.GifListener
+import net.pelozo.gifify.ui.dialogs.ShareDialog
+import net.pelozo.gifify.ui.fragments.home.HomeViewModel.Event
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(), GifListener {
 
     private val viewmodel: HomeViewModel by viewModel()
-    lateinit var adapter: GifAdapter
+    lateinit var adapter: GifPagingAdapter
 
 
     override fun onCreateView(
@@ -37,30 +36,38 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
+
+
         setUpToolbar(root.findViewById(R.id.toolbar))
+        setUpRecycler(root.findViewById(R.id.rv_gifs))
 
-        val recyclerView = root.findViewById<RecyclerView>(R.id.rv_gifs)
-        adapter = GifAdapter(viewmodel)
+        handleEvents()
+        loadGifs()
 
+        return root
+    }
+
+
+    private fun setUpRecycler(recyclerView: RecyclerView) {
+
+        //adapter with listener to pass events to viewmodel
+        adapter = GifPagingAdapter(this)
         recyclerView.adapter = adapter
 
         //display text when list is empty.
         adapter.addLoadStateListener { loadState ->
             if (loadState.source.refresh is LoadState.NotLoading && loadState.append.endOfPaginationReached && adapter.itemCount < 1) {
-                recyclerView?.isVisible = false
+                recyclerView.isVisible = false
                 tv_no_results?.isVisible = true
             } else {
-                recyclerView?.isVisible = true
+                recyclerView.isVisible = true
                 tv_no_results?.isVisible = false
             }
         }
 
-        return root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    private fun handleEvents(){
         //handle events from viewmodel
         lifecycleScope.launchWhenStarted {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -69,19 +76,17 @@ class HomeFragment : Fragment() {
                         is Event.ShowLoading -> pb_endless.visibility = View.VISIBLE
                         is Event.DismissLoading -> pb_endless.visibility = View.GONE
                         is Event.OpenShareDialog -> openShareDialog(event.url)
-                        is Event.ShowSnackBar -> showSnackbar(event.text)
+                        is Event.ShowMsgAddedToFavs -> showSnackbar(getString(R.string.gif_added_favs))
                     }
                 }
             }
         }
-        loadGifs()
     }
 
     private fun loadGifs(query: String? = null){
         lifecycleScope.launch {
             viewmodel.getGifs(query).collect{ pagingData ->
-                adapter.submitData(pagingData)
-
+                adapter.submitData(viewLifecycleOwner.lifecycle, pagingData)
             }
         }
     }
@@ -118,7 +123,6 @@ class HomeFragment : Fragment() {
             }
 
             override fun onMenuItemActionCollapse(menuItem: MenuItem?): Boolean {
-                //TODO when no
                 loadGifs()
                 return true
             }
@@ -127,46 +131,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun openShareDialog(url: String){
-        context?.let {
-            val dialog = Dialog(it)
-            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-            dialog.setContentView(R.layout.dialog_share_gif)
-
-
-            //set up dialog
-            dialog.findViewById<ImageView>(R.id.iv_full_gif).glideLoad(url)
-            dialog.findViewById<Button>(R.id.bt_close).setOnClickListener { dialog.dismiss() }
-            dialog.findViewById<Button>(R.id.bt_share).setOnClickListener {
-
-                val shareIntent: Intent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(
-                        Intent.EXTRA_TEXT, getString(
-                            R.string.share_message,
-                            url,
-                            getString(R.string.app_name)
-                        )
-                    )
-                    setType("text/plain");
-                }
-                startActivity(Intent.createChooser(shareIntent, getString(R.string.send_to)))
-            }
-
-
-            //set dialog size
-            val lp = WindowManager.LayoutParams()
-            lp.copyFrom(dialog.window!!.attributes)
-            lp.width = WindowManager.LayoutParams.MATCH_PARENT
-            lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-            val window = dialog.window
-            window!!.attributes = lp
-
-
-            //display dialog
-            dialog.show()
-        }
+        ShareDialog(url).show(childFragmentManager, null)
     }
 
+    override fun onGifClicked(gif: Gif) {
+        viewmodel.gifClicked(gif)
+    }
 
-
+    override fun onGifLongClicked(gif: Gif) {
+        viewmodel.gifLongClicked(gif)
+    }
 }

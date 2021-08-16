@@ -1,11 +1,9 @@
-package net.pelozo.gifify.ui.home.paging
+package net.pelozo.gifify.networking.giphyApi.paging
 
-import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import net.pelozo.gifify.model.giphyApi.GiphyApi
-import net.pelozo.gifify.model.giphyApi.GiphyResponse
-import net.pelozo.gifify.model.giphyApi.model.Gif
+import net.pelozo.gifify.model.GiphyResponse
+import net.pelozo.gifify.model.GifDto
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -13,16 +11,12 @@ import java.io.IOException
 
 
 abstract class BaseGifPagingSource(
-    private val service: GiphyApi
-) : PagingSource<Int, Gif>() {
+) : PagingSource<Int, GifDto>() {
 
-    protected val INTTIAL_POSITION = 0
+    protected val initialPosition = 0
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Gif> {
-        val position = params.key ?: INTTIAL_POSITION
-        val offset = if (params.key != null) ((position * params.loadSize))  else INTTIAL_POSITION
-        println("Position: $position, Limit: ${params.loadSize}, offset: $offset")
-
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, GifDto> {
+        val position = params.key ?: initialPosition
         return try {
             val response = getResponse(params)
             println(response)
@@ -31,8 +25,6 @@ abstract class BaseGifPagingSource(
                 if (response.data.isEmpty()) {
                     null
                 } else {
-                    // By default, initial load size = 3 * NETWORK PAGE SIZE
-                    // ensure we're not requesting duplicating items at the 2nd request
                     position + (params.loadSize / params.loadSize)
                 }
             LoadResult.Page(
@@ -45,6 +37,9 @@ abstract class BaseGifPagingSource(
         } catch (exception: HttpException) {
             return LoadResult.Error(exception)
         }
+    }
+    override fun getRefreshKey(state: PagingState<Int, GifDto>): Int? {
+        TODO("Not yet implemented") //return state.anchorPosition
     }
 
     abstract suspend fun getResponse(params:LoadParams<Int>): GiphyResponse

@@ -7,5 +7,10 @@
     <string name="share_message">Check out this cool gif! %1$s \n By %2$s</string>
     <string name="close">Close</string>
     <string name="send_to">Send to</string>
+    <string name="gif_added_favs">Gif added to favorites</string>
     <string name="no_results_found">No results found</string>
+    <string name="no_favs_found">No favorites yet :(</string>
+    <string name="delete_gif_confirmation">Are you sure you want to delete \"%1$s\" from favorites?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>
