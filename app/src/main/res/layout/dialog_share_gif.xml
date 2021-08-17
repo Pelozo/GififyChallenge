@@ -24,7 +24,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/close"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        android:layout_marginRight="4dp"/>
 
     <Button
         android:id="@+id/bt_share"
@@ -32,7 +33,8 @@
         android:layout_height="wrap_content"
         android:drawableStart="@drawable/ic_action_share"
         android:text="@string/share"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        android:layout_marginLeft="4dp"/>
 
     </LinearLayout>
 

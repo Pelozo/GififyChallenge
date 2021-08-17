@@ -1,9 +1,12 @@
 package net.pelozo.gifify.ui.fragments.home
 
+import android.content.Context
 import android.os.Bundle
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -15,6 +18,7 @@ import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import net.pelozo.gifify.R
+import net.pelozo.gifify.hideKeyboard
 import net.pelozo.gifify.model.Gif
 import net.pelozo.gifify.showSnackbar
 import net.pelozo.gifify.ui.adapters.GifPagingAdapter
@@ -53,7 +57,6 @@ class HomeFragment : Fragment(), GifListener {
         //adapter with listener to pass events to viewmodel
         adapter = GifPagingAdapter(this)
         recyclerView.adapter = adapter
-
         //display text when list is empty.
         adapter.addLoadStateListener { loadState ->
             if (loadState.source.refresh is LoadState.NotLoading && loadState.append.endOfPaginationReached && adapter.itemCount < 1) {
@@ -102,6 +105,7 @@ class HomeFragment : Fragment(), GifListener {
                 override fun onQueryTextSubmit(query: String): Boolean {
                     if (query.isNotEmpty()) {
                         loadGifs(query)
+                        hideKeyboard()
                         return true
                     }
                     return false
@@ -112,7 +116,6 @@ class HomeFragment : Fragment(), GifListener {
                     return false
                 }
             })
-
         }
 
         //when closing searchview return to trends
@@ -127,8 +130,9 @@ class HomeFragment : Fragment(), GifListener {
                 return true
             }
         })
-
     }
+
+
 
     private fun openShareDialog(url: String){
         ShareDialog(url).show(childFragmentManager, null)

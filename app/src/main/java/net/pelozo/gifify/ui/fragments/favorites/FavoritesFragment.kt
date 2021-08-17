@@ -39,21 +39,20 @@ class FavoritesFragment : Fragment(), GifAdapter.GifListener {
         setUpToolbar(root.findViewById(R.id.toolbar))
 
         recycler = root.findViewById(R.id.rv_favs)
+        adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
         recycler.adapter = adapter
 
-        handleEvents()
-        return root
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
         lifecycleScope.launchWhenStarted {
             viewmodel.getGifs().collectLatest{ gifs ->
                 tv_no_favs.isVisible = gifs.isEmpty()
                 setUpRecycler(gifs)
             }
         }
+
+        handleEvents()
+        return root
     }
+
 
     private fun setUpRecycler(gifs: List<Gif>) {
         adapter.setData(gifs)

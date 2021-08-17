@@ -13,4 +13,5 @@
     <string name="delete_gif_confirmation">Are you sure you want to delete \"%1$s\" from favorites?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="retry">Retry</string>
 </resources>
