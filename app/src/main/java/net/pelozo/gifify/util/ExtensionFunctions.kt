@@ -7,7 +7,7 @@ import com.bumptech.glide.Priority
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
-
+import net.pelozo.gifify.util.Misc.Companion.glideOptions
 
 fun ImageView.glideLoad(url: String) {
     Glide.with(this)
@@ -15,11 +15,5 @@ fun ImageView.glideLoad(url: String) {
         .apply(glideOptions)
         .into(this)
 }
-
-val glideOptions: RequestOptions = RequestOptions()
-    .placeholder(R.drawable.progress_anim)
-    .diskCacheStrategy(DiskCacheStrategy.ALL)
-    .priority(Priority.HIGH)
-
 
 fun Fragment.showSnackbar(message: String, length: Int = Snackbar.LENGTH_SHORT) = view?.run { Snackbar.make(this, message, length).show()}

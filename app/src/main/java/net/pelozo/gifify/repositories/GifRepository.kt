@@ -16,7 +16,8 @@ class GifRepository(private val giphyApi: GiphyApi, private val db: GifDao){
     companion object{
         val pagingConfig = PagingConfig(
             pageSize = 50,
-            prefetchDistance = 50,
+            prefetchDistance = 30,
+            maxSize = 250,
             enablePlaceholders = true
         )
     }
