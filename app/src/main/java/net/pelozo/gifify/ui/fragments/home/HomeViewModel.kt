@@ -1,17 +1,19 @@
 package net.pelozo.gifify.ui.fragments.home
 
+import android.os.Bundle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.pelozo.gifify.repositories.GifRepository
 import net.pelozo.gifify.model.Gif
 
-class HomeViewModel(private val gifRepo: GifRepository) : ViewModel() {
+class HomeViewModel(private val gifRepo: GifRepository, private val analytics: FirebaseAnalytics) : ViewModel() {
 
     sealed class Event {
         object ShowLoading: Event()
@@ -41,8 +43,14 @@ class HomeViewModel(private val gifRepo: GifRepository) : ViewModel() {
     fun gifLongClicked(gif: Gif){
         viewModelScope.launch {
             gifRepo.saveFavorite(gif)
+            sendAnalytic(gif)
             eventChannel.send(Event.ShowMsgAddedToFavs)
         }
+    }
+    private fun sendAnalytic(gif: Gif){
+        val data = Bundle()
+        data.putString("id", gif.id)
+        analytics.logEvent(FirebaseAnalytics.Event.SELECT_ITEM, data)
     }
 
 }

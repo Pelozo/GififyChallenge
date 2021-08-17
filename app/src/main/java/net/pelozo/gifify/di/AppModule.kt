@@ -2,6 +2,9 @@ package net.pelozo.gifify.di
 
 import android.app.Application
 import androidx.room.Room
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import net.pelozo.gifify.BuildConfig
 import net.pelozo.gifify.networking.giphyApi.AuthInterceptor
 import net.pelozo.gifify.networking.giphyApi.GiphyApi
@@ -22,7 +25,7 @@ val appModule = module {
 }
 
 val viewModelModule = module {
-    viewModel{HomeViewModel(get())}
+    viewModel{HomeViewModel(get(), get())}
     viewModel{FavoritesViewModel(get())}
 }
 
@@ -57,6 +60,14 @@ val roomModule = module {
     single { provideDatabase(androidApplication()) }
     single { provideCountriesDao(get()) }
 
+}
+
+val firebaseModule = module{
+    fun provideAnalytics(): FirebaseAnalytics {
+        return Firebase.analytics
+    }
+
+    single{provideAnalytics()}
 }
 
 
